@@ -172,8 +172,9 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
         if (bridgeStatusInfo.getStatus() == ThingStatus.ONLINE) {
             if (zoneControl == null) {
                 YamahaBridgeHandler brHandler = getBridgeHandler();
-                zoneControl = ProtocolFactory.ZoneControl(brHandler.getCommunication(), zone, this);
-                zoneAvailableInputs = ProtocolFactory.ZoneAvailableInputs(brHandler.getCommunication(), zone, this);
+
+                zoneControl = ProtocolFactory.ZoneControl(brHandler.getCommunication(), zone, this, brHandler::getInputConverter);
+                zoneAvailableInputs = ProtocolFactory.ZoneAvailableInputs(brHandler.getCommunication(), zone, this, brHandler::getInputConverter);
 
                 updateZoneInformation();
             }
@@ -262,7 +263,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_NAVIGATION_MENU:
                     if (inputWithNavigationControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
 
@@ -272,7 +273,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_NAVIGATION_UPDOWN:
                     if (inputWithNavigationControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
                     if (((UpDownType) command) == UpDownType.UP) {
@@ -284,7 +285,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_NAVIGATION_LEFTRIGHT:
                     if (inputWithNavigationControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
                     if (((UpDownType) command) == UpDownType.UP) {
@@ -296,7 +297,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_NAVIGATION_SELECT:
                     if (inputWithNavigationControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
                     inputWithNavigationControl.selectCurrentItem();
@@ -304,7 +305,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_NAVIGATION_BACK:
                     if (inputWithNavigationControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
                     inputWithNavigationControl.goBack();
@@ -312,7 +313,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_NAVIGATION_BACKTOROOT:
                     if (inputWithNavigationControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
                     inputWithNavigationControl.goToRoot();
@@ -320,7 +321,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_PLAYBACK_PRESET:
                     if (inputWithPresetControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
 
@@ -338,7 +339,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_TUNER_BAND:
                     if (inputWithDabBandControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
 
@@ -351,7 +352,7 @@ public class YamahaZoneThingHandler extends BaseThingHandler implements ZoneCont
 
                 case YamahaReceiverBindingConstants.CHANNEL_PLAYBACK:
                     if (inputWithPlayControl == null) {
-                        logger.warn("Channel {} not working with this input!", id);
+                        logger.warn("Channel {} not working with {} input!", id, zoneState.inputID);
                         return;
                     }
 

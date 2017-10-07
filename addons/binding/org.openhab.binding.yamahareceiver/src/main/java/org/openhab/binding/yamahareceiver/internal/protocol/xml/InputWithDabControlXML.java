@@ -9,7 +9,6 @@
 package org.openhab.binding.yamahareceiver.internal.protocol.xml;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.yamahareceiver.internal.protocol.AbstractConnection;
@@ -40,15 +39,12 @@ import org.w3c.dom.Node;
  *
  * @author Tomasz Maruszak - [yamaha] Tuner band selection and preset feature for dual band models (RX-S601D)
  */
-public class InputWithDabControlXML implements InputWithDabBandControl, InputWithPresetControl {
+public class InputWithDabControlXML extends AbstractInputControlXML implements InputWithDabBandControl, InputWithPresetControl {
 
     private Logger logger = LoggerFactory.getLogger(InputWithDabControlXML.class);
 
     private static final String BAND_FM = "FM";
     private static final String BAND_DAB = "DAB";
-
-    protected final WeakReference<AbstractConnection> comReference;
-    protected final String inputID;
 
     private final DabBandStateListener observerForBand;
     private final PresetInfoStateListener observerForPreset;
@@ -68,8 +64,9 @@ public class InputWithDabControlXML implements InputWithDabBandControl, InputWit
      */
     public InputWithDabControlXML(String inputID, AbstractConnection com, DabBandStateListener observerForBand,
             PresetInfoStateListener observerForPreset, PlayInfoStateListener observerForPlayInfo) {
-        this.inputID = inputID;
-        this.comReference = new WeakReference<>(com);
+
+        super(inputID, com);
+
         this.observerForBand = observerForBand;
         this.observerForPreset = observerForPreset;
         this.observerForPlayInfo = observerForPlayInfo;

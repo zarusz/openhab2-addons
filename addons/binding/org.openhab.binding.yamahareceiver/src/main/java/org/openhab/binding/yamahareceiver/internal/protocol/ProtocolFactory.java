@@ -9,9 +9,10 @@
 package org.openhab.binding.yamahareceiver.internal.protocol;
 
 import org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants.Zone;
-import org.openhab.binding.yamahareceiver.handler.YamahaZoneThingHandler;
 import org.openhab.binding.yamahareceiver.internal.protocol.xml.*;
 import org.openhab.binding.yamahareceiver.internal.state.*;
+
+import java.util.function.Supplier;
 
 /**
  * Factory to create a {@link AbstractConnection} connection object based on a feature test.
@@ -20,6 +21,7 @@ import org.openhab.binding.yamahareceiver.internal.state.*;
  * At the moment only the XML protocol is supported.
  *
  * @author David Graeff - Initial contribution
+ * @author Tomasz Maruszak - Input mapping fix
  *
  */
 public class ProtocolFactory {
@@ -70,23 +72,24 @@ public class ProtocolFactory {
                                                                   PresetInfoStateListener observerForPreset,
                                                                   PlayInfoStateListener observerForPlayInfo) {
         if (connection instanceof XMLConnection) {
-            return new InputWithDabControlXML(currentInputID, connection,
-                    observerForBand, observerForPreset, observerForPlayInfo);
+            return new InputWithDabControlXML(currentInputID, connection, observerForBand, observerForPreset, observerForPlayInfo);
         }
         return null;
     }
 
-    public static ZoneControl ZoneControl(AbstractConnection connection, Zone zone, ZoneControlStateListener listener) {
+    public static ZoneControl ZoneControl(AbstractConnection connection, Zone zone, ZoneControlStateListener listener,
+                                          Supplier<InputConverter> inputConverterSupplier) {
         if (connection instanceof XMLConnection) {
-            return new ZoneControlXML(connection, zone, listener);
+            return new ZoneControlXML(connection, zone, listener, inputConverterSupplier);
         }
         return null;
     }
 
     public static ZoneAvailableInputs ZoneAvailableInputs(AbstractConnection connection, Zone zone,
-            AvailableInputStateListener listener) {
+                                                          AvailableInputStateListener listener,
+                                                          Supplier<InputConverter> inputConverterSupplier) {
         if (connection instanceof XMLConnection) {
-            return new ZoneAvailableInputsXML(connection, zone, listener);
+            return new ZoneAvailableInputsXML(new XMLProtocolService(connection), zone, listener, inputConverterSupplier);
         }
         return null;
     }
@@ -94,6 +97,13 @@ public class ProtocolFactory {
     public static DeviceInformation DeviceInformation(AbstractConnection connection, DeviceInformationState state) {
         if (connection instanceof XMLConnection) {
             return new DeviceInformationXML(connection, state);
+        }
+        return null;
+    }
+
+    public static InputConverter InputConverter(AbstractConnection connection, String setting) {
+        if (connection instanceof XMLConnection) {
+            return new InputConverterXML(new XMLProtocolService(connection), setting);
         }
         return null;
     }

@@ -26,6 +26,7 @@ import org.w3c.dom.Node;
  *
  * @author David Gräff - Initial contribution
  * @author Tomasz Maruszak - refactoring
+ *
  */
 public class SystemControlXML implements SystemControl {
     private WeakReference<AbstractConnection> comReference;
@@ -61,8 +62,8 @@ public class SystemControlXML implements SystemControl {
 
     @Override
     public void setPower(boolean power) throws IOException, ReceivedMessageParseException {
-        String str = power ? "On" : "Standby";
-        comReference.get().send("<System><Power_Control><Power>" + str + "</Power></Power_Control></System>");
+        String cmd = power ? "On" : "Standby";
+        comReference.get().send("<System><Power_Control><Power>" + cmd + "</Power></Power_Control></System>");
         update();
     }
 }

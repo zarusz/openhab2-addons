@@ -90,6 +90,7 @@ public class YamahaReceiverBindingConstants {
     public static final String CONFIG_HOST_PORT = "PORT";
     public static final String CONFIG_ZONE = "ZONE";
     public static final String CONFIG_RELVOLUMECHANGE = "RELVOLUMECHANGE";
+    public static final String CONFIG_INPUT_MAP = "INPUT_MAP";
 
     public static final String PROPERTY_VERSION = "version";
     public static final String PROPERTY_ASSIGNED_NAME = "assigned_name";
@@ -131,6 +132,9 @@ public class YamahaReceiverBindingConstants {
     public static final String INPUT_TUNER = "TUNER";
     public static final String INPUT_SPOTIFY = "Spotify";
     public static final String INPUT_BLUETOOTH = "Bluetooth";
+    public static final String INPUT_NETRADIO = "NET RADIO";
+    public static final String INPUT_MUSIC_CAST_LINK = "MusicCast Link";
+    public static final String INPUT_SERVER = "SERVER";
 
     /** Placeholder value that is used when the string channel value is not available */
     public static final String VALUE_NA = "N/A";

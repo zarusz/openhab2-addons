@@ -9,7 +9,6 @@
 package org.openhab.binding.yamahareceiver.internal.protocol.xml;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 import org.openhab.binding.yamahareceiver.internal.protocol.AbstractConnection;
 import org.openhab.binding.yamahareceiver.internal.protocol.InputWithPresetControl;
@@ -37,10 +36,7 @@ import org.w3c.dom.Node;
  *
  * @author David Graeff
  */
-public class InputWithPresetControlXML implements InputWithPresetControl {
-    protected final WeakReference<AbstractConnection> comReference;
-
-    protected final String inputID;
+public class InputWithPresetControlXML extends AbstractInputControlXML implements InputWithPresetControl {
 
     public static final int PRESET_CHANNELS = 40;
 
@@ -54,20 +50,8 @@ public class InputWithPresetControlXML implements InputWithPresetControl {
      * @param com The Yamaha communication object to send http requests.
      */
     public InputWithPresetControlXML(String inputID, AbstractConnection com, PresetInfoStateListener observer) {
-        this.inputID = inputID;
-        this.comReference = new WeakReference<>(com);
+        super(inputID, com);
         this.observer = observer;
-    }
-
-    /**
-     * Wraps the XML message with the inputID tags. Example with inputID=NET_RADIO:
-     * <NETRADIO>message</NETRADIO>.
-     *
-     * @param message XML message
-     * @return
-     */
-    protected String wrInput(String message) {
-        return "<" + inputID + ">" + message + "</" + inputID + ">";
     }
 
     /**
@@ -112,7 +96,7 @@ public class InputWithPresetControlXML implements InputWithPresetControl {
     /**
      * Select a preset channel.
      *
-     * @param number The preset position [1,40]
+     * @param presetChannel The preset position [1,40]
      * @throws Exception
      */
     public void selectItemByPresetNumber(int presetChannel) throws IOException, ReceivedMessageParseException {

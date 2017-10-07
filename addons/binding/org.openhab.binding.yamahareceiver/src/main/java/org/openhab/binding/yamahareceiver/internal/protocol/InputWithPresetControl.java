@@ -15,19 +15,26 @@ import java.util.stream.Stream;
 
 import org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants;
 
+import static org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants.*;
+
 /**
  * The preset control protocol interface
  *
  * @author David Graeff - Initial contribution
+ * @author Tomasz Maruszak - Adding Spotify, Server to supported preset inputs
  */
 
 public interface InputWithPresetControl extends IStateUpdatable {
     /**
      * List all inputs that are compatible with this kind of control
      */
-    Set<String> SUPPORTED_INPUTS = Stream.of(YamahaReceiverBindingConstants.INPUT_TUNER, "NET_RADIO", "NET RADIO",
+    Set<String> SUPPORTED_INPUTS = Stream.of(
+            INPUT_TUNER, INPUT_NETRADIO, "NET_RADIO",
             "USB", "DOCK", "iPOD_USB", "PC", "Napster", "Pandora", "SIRIUS", "Rhapsody",
-            YamahaReceiverBindingConstants.INPUT_BLUETOOTH, "iPod", "HD_RADIO").collect(Collectors.toSet());
+            INPUT_BLUETOOTH, INPUT_SPOTIFY,
+            INPUT_SERVER,
+            "iPod", "HD_RADIO"
+        ).collect(Collectors.toSet());
 
     /**
      * Select a preset channel.

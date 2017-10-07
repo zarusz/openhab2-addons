@@ -10,9 +10,11 @@ package org.openhab.binding.yamahareceiver.internal.protocol.xml;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants;
+import org.openhab.binding.yamahareceiver.internal.protocol.InputConverter;
 import org.openhab.binding.yamahareceiver.internal.protocol.AbstractConnection;
 import org.openhab.binding.yamahareceiver.internal.protocol.ReceivedMessageParseException;
 import org.openhab.binding.yamahareceiver.internal.protocol.ZoneControl;
@@ -23,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import static org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants.VOLUME_MIN;
+import static org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants.VOLUME_RANGE;
+
 /**
  * The zone protocol class is used to control one zone of a Yamaha receiver with HTTP/xml.
  * No state will be saved in here, but in {@link ZoneControlState} instead.
@@ -30,26 +35,28 @@ import org.w3c.dom.Node;
  * @author David Gräff - Refactored
  * @author Eric Thill
  * @author Ben Jones
- * @author Tomasz Maruszak - Refactoring
- *
- * FixMe:
- *  When handing input channel this class needs some improvements.
- *  For example, AVRs when setting input 'AUDIO_X' (or HDMI_X) need the input to be sent in this form.
- *  However, what comes back in the status update from the AVR is 'AUDIOX' (and 'HDMIX') respectively.
+ * @author Tomasz Maruszak - Refactoring, input mapping fix, Straight surround fix
  *
  */
 public class ZoneControlXML implements ZoneControl {
+
     private final Logger logger = LoggerFactory.getLogger(ZoneControlXML.class);
 
-    private ZoneControlStateListener observer;
+    private static final String ON = "On";
+    private static final String OFF = "Off";
+    private static final String STRAIGHT = "Straight";
+
+    private final ZoneControlStateListener observer;
+    private final Supplier<InputConverter> inputConverterSupplier;
     private final WeakReference<AbstractConnection> comReference;
     private final YamahaReceiverBindingConstants.Zone zone;
 
     public ZoneControlXML(AbstractConnection xml, YamahaReceiverBindingConstants.Zone zone,
-            ZoneControlStateListener observer) {
+                          ZoneControlStateListener observer, Supplier<InputConverter> inputConverterSupplier) {
         this.comReference = new WeakReference<>(xml);
         this.zone = zone;
         this.observer = observer;
+        this.inputConverterSupplier = inputConverterSupplier;
     }
 
     /**
@@ -61,11 +68,8 @@ public class ZoneControlXML implements ZoneControl {
 
     @Override
     public void setPower(boolean on) throws IOException, ReceivedMessageParseException {
-        if (on) {
-            comReference.get().send(XMLUtils.wrZone(zone, "<Power_Control><Power>On</Power></Power_Control>"));
-        } else {
-            comReference.get().send(XMLUtils.wrZone(zone, "<Power_Control><Power>Standby</Power></Power_Control>"));
-        }
+        String cmd = on ? ON : "Standby";
+        comReference.get().send(XMLUtils.wrZone(zone, "<Power_Control><Power>" + cmd + "</Power></Power_Control>"));
         update();
     }
 
@@ -77,8 +81,8 @@ public class ZoneControlXML implements ZoneControl {
      */
     @Override
     public void setVolumeDB(float volume) throws IOException, ReceivedMessageParseException {
-        if (volume < YamahaReceiverBindingConstants.VOLUME_MIN) {
-            volume = YamahaReceiverBindingConstants.VOLUME_MIN;
+        if (volume < VOLUME_MIN) {
+            volume = VOLUME_MIN;
         }
         if (volume > YamahaReceiverBindingConstants.VOLUME_MAX) {
             volume = YamahaReceiverBindingConstants.VOLUME_MAX;
@@ -105,7 +109,7 @@ public class ZoneControlXML implements ZoneControl {
             volume = 100;
         }
         // Compute value in db
-        setVolumeDB(volume * YamahaReceiverBindingConstants.VOLUME_RANGE / 100.0f + YamahaReceiverBindingConstants.VOLUME_MIN);
+        setVolumeDB(volume * VOLUME_RANGE / 100.0f + VOLUME_MIN);
     }
 
     /**
@@ -122,31 +126,25 @@ public class ZoneControlXML implements ZoneControl {
 
     @Override
     public void setMute(boolean mute) throws IOException, ReceivedMessageParseException {
-        if (mute) {
-            comReference.get().send(XMLUtils.wrZone(zone, "<Volume><Mute>On</Mute></Volume>"));
-        } else {
-            comReference.get().send(XMLUtils.wrZone(zone, "<Volume><Mute>Off</Mute></Volume>"));
-        }
+        String cmd = mute ? ON : OFF;
+        comReference.get().send(XMLUtils.wrZone(zone, "<Volume><Mute>" + cmd + "</Mute></Volume>"));
         update();
     }
 
     @Override
     public void setInput(String name) throws IOException, ReceivedMessageParseException {
-        // ToDo: See the fixme in the class description
+        name = inputConverterSupplier.get().toCommandName(name);
         comReference.get().send(XMLUtils.wrZone(zone, "<Input><Input_Sel>" + name + "</Input_Sel></Input>"));
         update();
     }
 
     @Override
     public void setSurroundProgram(String name) throws IOException, ReceivedMessageParseException {
-        if (name.toLowerCase().equals("straight")) {
-            comReference.get().send(XMLUtils.wrZone(zone,
-                    "<Surround><Program_Sel><Current><Straight>On</Straight></Current></Program_Sel></Surround>"));
-        } else {
-            comReference.get().send(XMLUtils.wrZone(zone, "<Surround><Program_Sel><Current><Sound_Program>" + name
-                    + "</Sound_Program></Current></Program_Sel></Surround>"));
-        }
+        String cmd = name.equalsIgnoreCase(STRAIGHT)
+                ? "<Straight>On</Straight>"
+                : String.format("<Sound_Program>%s</Sound_Program>", name) ;
 
+        comReference.get().send(XMLUtils.wrZone(zone,"<Surround><Program_Sel><Current>" + cmd + "</Current></Program_Sel></Surround>"));
         update();
     }
 
@@ -169,38 +167,38 @@ public class ZoneControlXML implements ZoneControl {
         ZoneControlState state = new ZoneControlState();
 
         value = XMLUtils.getNodeContentOrDefault(basicStatus, "Power_Control/Power", "");
-        state.power = "On".equalsIgnoreCase(value);
+        state.power = ON.equalsIgnoreCase(value);
+
+        value = XMLUtils.getNodeContentOrDefault(basicStatus, "Volume/Mute", "");
+        state.mute = ON.equalsIgnoreCase(value);
+
+        value = XMLUtils.getNodeContentOrDefault(basicStatus, "Volume/Lvl/Val", String.valueOf(VOLUME_MIN));
+        state.volume = Float.parseFloat(value) * .1f; // in DB
+        state.volume = (state.volume + -VOLUME_MIN) * 100.0f / VOLUME_RANGE; // in percent
+        if (state.volume < 0 || state.volume > 100) {
+            logger.error("Received volume is out of range: {}", state.volume);
+            state.volume = 0;
+        }
 
         value = XMLUtils.getNodeContentOrDefault(basicStatus, "Input/Input_Sel", "");
-        // ToDo: See the fixme in the class description
-        state.inputID = XMLUtils.convertNameToID(value);
-
+        state.inputID = inputConverterSupplier.get().fromStateName(value);
         if (StringUtils.isBlank(state.inputID)) {
-            throw new ReceivedMessageParseException(
-                    "Expected inputID. Failed to read Input/Input_Sel_Item_Info/Src_Name");
+            throw new ReceivedMessageParseException("Expected inputID. Failed to read Input/Input_Sel");
         }
 
         // Some receivers may use Src_Name instead?
         value = XMLUtils.getNodeContentOrDefault(basicStatus, "Input/Input_Sel_Item_Info/Title", "");
         state.inputName = value;
 
+        value = XMLUtils.getNodeContentOrDefault(basicStatus, "Surround/Program_Sel/Current/Straight", "");
+        boolean straightOn = ON.equalsIgnoreCase(value);
+
         value = XMLUtils.getNodeContentOrDefault(basicStatus, "Surround/Program_Sel/Current/Sound_Program", "");
-        state.surroundProgram = value;
+        // Surround is either in straight mode or sound program
+        state.surroundProgram = straightOn ? STRAIGHT : value;
 
-        value = XMLUtils.getNodeContentOrDefault(basicStatus, "Volume/Lvl/Val", String.valueOf(YamahaReceiverBindingConstants.VOLUME_MIN));
-        state.volume = Float.parseFloat(value) * .1f; // in DB
-        state.volume = (state.volume + -YamahaReceiverBindingConstants.VOLUME_MIN) * 100.0f
-                / YamahaReceiverBindingConstants.VOLUME_RANGE; // in percent
-        if (state.volume < 0 || state.volume > 100) {
-            logger.error("Received volume is out of range: {}", state.volume);
-            state.volume = 0;
-        }
-
-        value = XMLUtils.getNodeContentOrDefault(basicStatus, "Volume/Mute", "");
-        state.mute = "On".equalsIgnoreCase(value);
-
-        logger.trace("Zone {} state - power: {}, input: {}, mute: {}, surroundProgram: {}, volume: {}",
-                zone, state.power, state.inputID, state.mute, state.surroundProgram, state.volume);
+        logger.trace("Zone {} state - power: {}, mute: {}, volume: {}, input: {}, surroundProgram: {}",
+                zone, state.power, state.mute, state.volume, state.inputID, state.surroundProgram);
 
         observer.zoneStateChanged(state);
     }

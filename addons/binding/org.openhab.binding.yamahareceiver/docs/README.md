@@ -1,28 +1,31 @@
-# Yamahareceiver Binding - Developer documentation
+# YamahaReceiver Binding - Developer documentation
 
 There exist two protocols so far. An xml based one for the following receiver types:
-RX-A3010,RX-A2010,RX-A1010,RX-A810,RX-A710,RX-V3071,RX-V2071,RX-V1071,RX-V871,RX-V771,RX-V671,
+RX-A3010,RX-A2010,RX-A1010,RX-A810,RX-A710,RX-V3071,RX-V2071,RX-V1071,RX-V871,RX-V771,RX-V671,RX-S601D
 and a json based protocol for newer receivers.
 
-### XML protocol overview
+## XML Protocol
+
+### Overview
 
 The http port 80 on the receiver is used with http POST requests for retrieving and changing the device state. The actual url is http://HOST/YamahaRemoteControl/ctrl.
 
 An example for retrieving data:
+```xml
 <?xml version="1.0" encoding="utf-8"?>
 <YAMAHA_AV cmd="GET">
 <ZONE><Basic_Status>GetParam</Basic_Status><ZONE>
 </YAMAHA_AV>
-
+```
 where ZONE is Main_Zone, Zone_2, Zone_3 or Zone_4.
 
 An example for changing the state of the receiver:
-
+```xml
 <YAMAHA_AV cmd="PUT">
 <ZONE><Power_Control><Power>On</Power></Power_Control><ZONE>
 </YAMAHA_AV>
-
-### Xml Structure
+```
+### XML Structure
 	System	
 		Config
 			Model_Name
@@ -145,3 +148,16 @@ An example for changing the state of the receiver:
 		Play_Info
 		List_Control
 		List_Info
+
+
+### XML Descriptor
+
+The AVR provides an XML file that describes features and commands available using this URL:
+```
+http://<Your_Yamaha_ID>/YamahaRemoteControl/desc.xml
+```
+
+As Yamaha introduces new models there may be significant variations between XML structure.
+In an attempt to improve the addon maintenance and troubleshooting each model's `desc.xml`' has been catalogued:
+
+* [RX-S601D](desc_RX-S601D.xml) 

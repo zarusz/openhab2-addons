@@ -8,8 +8,6 @@
  */
 package org.openhab.binding.yamahareceiver.internal.protocol.xml;
 
-import com.google.common.collect.Sets;
-import org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants;
 import org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants.Zone;
 import org.openhab.binding.yamahareceiver.internal.protocol.ReceivedMessageParseException;
 import org.slf4j.Logger;
@@ -24,13 +22,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Set;
 
 /**
  * Utility methods for XML handling
  *
  * @author David Graeff - Initial contribution
  * @author Tomasz Maruszak - DAB support, Spotify support, refactoring, input name conversion fix
+ * @author Tomasz Maruszak - Input mapping fix
  *
  */
 public class XMLUtils {
@@ -125,42 +123,6 @@ public class XMLUtils {
             throw new ReceivedMessageParseException(e);
         }
     }
-
-    /**
-     * The xml protocol expects HDMI_1, NET_RADIO as xml nodes, while the actual input IDs are
-     * HDMI 1, Net Radio. We offer this conversion method therefore.
-     *
-     * Certain known inputs (e.g. Spotify, Bluetooth) will NOT be transformed (see {@link #INPUTS_NO_CONVERSION}).
-     *
-     * @param name The inputID like "Net Radio".
-     * @return An xml node / xml protocol compatible name like NET_RADIO.
-     */
-    public static String convertNameToID(String name) {
-        // Inputs such as 'Spotify' or 'Bluetooth' should NOT be transformed to upper case
-        // as the AVR does not understand them (SPOTIFY != Spotify).
-        if (INPUTS_NO_CONVERSION.contains(name)) {
-            // return input name without transformation
-            return name;
-        }
-
-        // Replace whitespace with an underscore. The ID is what is used for xml tags and the AVR doesn't like
-        // whitespace in xml tags.
-        name = name.replace(" ", "_").toUpperCase();
-        // Workaround if the receiver returns "HDMI2" instead of "HDMI_2". We can't really change the input IDs in the
-        // thing type description, because we still need to send "HDMI_2" for an input change to the receiver.
-        if (name.length() >= 5 && name.startsWith("HDMI") && name.charAt(4) != '_') {
-            // Adds the missing underscore.
-            name = name.replace("HDMI", "HDMI_");
-        }
-        return name;
-    }
-
-    /**
-     * Holds a list of all the inputs names that should NOT be transformed by the {@link #convertNameToID(String)} method.
-     */
-    private static final Set<String> INPUTS_NO_CONVERSION = Sets.newHashSet(
-            YamahaReceiverBindingConstants.INPUT_SPOTIFY,
-            YamahaReceiverBindingConstants.INPUT_BLUETOOTH);
 
     /**
      * Wraps the XML message with the zone tags. Example with zone=Main_Zone:

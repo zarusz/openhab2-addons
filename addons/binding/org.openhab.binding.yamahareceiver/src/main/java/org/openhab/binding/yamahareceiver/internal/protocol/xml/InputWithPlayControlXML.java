@@ -9,7 +9,6 @@
 package org.openhab.binding.yamahareceiver.internal.protocol.xml;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.yamahareceiver.YamahaReceiverBindingConstants;
@@ -42,15 +41,11 @@ import org.w3c.dom.Node;
  * @author David Graeff
  * @author Tomasz Maruszak - Spotify support, refactoring
  */
-public class InputWithPlayControlXML implements InputWithPlayControl {
+public class InputWithPlayControlXML extends AbstractInputControlXML implements InputWithPlayControl {
 
     public static final int PRESET_CHANNELS = 40;
 
     private final Logger logger = LoggerFactory.getLogger(InputWithPlayControlXML.class);
-
-    protected final WeakReference<AbstractConnection> comReference;
-
-    protected final String inputID;
 
     private final PlayInfoStateListener observer;
 
@@ -62,20 +57,8 @@ public class InputWithPlayControlXML implements InputWithPlayControl {
      * @param com The Yamaha communication object to send http requests.
      */
     public InputWithPlayControlXML(String inputID, AbstractConnection com, PlayInfoStateListener observer) {
-        this.inputID = inputID;
-        this.comReference = new WeakReference<>(com);
+        super(inputID, com);
         this.observer = observer;
-    }
-
-    /**
-     * Wraps the XML message with the inputID tags. Example with inputID=NET_RADIO:
-     * <NETRADIO>message</NETRADIO>.
-     *
-     * @param message XML message
-     * @return
-     */
-    protected String wrInput(String message) {
-        return "<" + inputID + ">" + message + "</" + inputID + ">";
     }
 
     /**

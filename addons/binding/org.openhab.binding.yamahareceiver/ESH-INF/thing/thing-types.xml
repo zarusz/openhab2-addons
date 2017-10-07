@@ -34,6 +34,18 @@
 				<default>60</default>
 				<advanced>true</advanced>
 			</parameter>
+			<parameter name="INPUT_MAP" type="text" required="false">
+				<label>Input mapping</label>
+				<description>
+					Some Yamaha models return different input values on status update than required in the change input commands. For example: HDMI1 command may be reported as HDMI_1 after status update.
+					There are other related edge cases (USB, iPad_USB). This setting allows the user to customize the return input mapping to meet their AVR model.
+
+					The setting is a comma separated list of value mapping from to.
+					Example: HDMI_1=HDMI1,HDMI 1=HDMI1,HDMI1=HDMI1
+				</description>
+				<default></default>
+				<advanced>true</advanced>
+			</parameter>
 		</config-description>
 	</bridge-type>
 
