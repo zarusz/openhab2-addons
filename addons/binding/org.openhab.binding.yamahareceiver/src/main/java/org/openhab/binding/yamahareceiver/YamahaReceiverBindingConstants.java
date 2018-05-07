@@ -41,8 +41,13 @@ public class YamahaReceiverBindingConstants {
     public static final String CHANNEL_SURROUND = "surroundProgram";
     public static final String CHANNEL_VOLUME = "volume";
     public static final String CHANNEL_VOLUME_DB = "volumeDB";
-    public static final String CHANNEL_DIALOGUE_LEVEL = "dialogueLevel";
     public static final String CHANNEL_MUTE = "mute";
+    public static final String CHANNEL_SCENE = "scene";
+    public static final String CHANNEL_DIALOGUE_LEVEL = "dialogueLevel";
+
+    public static final String CHANNEL_PARTY_MODE = "party_mode";
+    public static final String CHANNEL_PARTY_MODE_MUTE = "party_mode_mute";
+    public static final String CHANNEL_PARTY_MODE_VOLUME = "party_mode_volume";
 
     // List of channel IDs for navigation control: Read/Write
     public static final String CHANNEL_NAVIGATION_MENU = "navigation_menu"; // Navigate either in the current menu
@@ -124,6 +129,10 @@ public class YamahaReceiverBindingConstants {
         NET_RADIO,
         USB,
         /**
+         * Model RX-V3900 has this and it represents NET_RADIO and USB
+         */
+        NET_USB,
+        /**
          * Model HTR-xxxx has a Zone_2 concept but realized as an extension to Main_Zone
          */
         ZONE_B
@@ -161,4 +170,8 @@ public class YamahaReceiverBindingConstants {
     public static final String VALUE_NA = "N/A";
     /** Empty value that is used when the string channel value is not available */
     public static final String VALUE_EMPTY = "";
+
+    public static class Models {
+        public static final String RX_A2000 = "RX-A2000";
+    }
 }
